@@ -4,57 +4,38 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-
 - master
 
-
 pool:
-
-
   vmImage: 'ubuntu-latest'
 
-
 strategy:
-
-
   matrix:
-
-
     Python27:
-
-
       python.version: '2.7'
 
-
-
 steps:
+# Step to manually download and install Python 2.7
+- script: |
+    wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+    tar -xvf Python-2.7.18.tgz
+    cd Python-2.7.18
+    ./configure --prefix=$(Pipeline.Workspace)/python2.7
+    make
+    make install
+  displayName: 'Download and Install Python 2.7'
 
-
-- task: UsePythonVersion@0
-
-
-  inputs:
-
-
-    versionSpec: '$(python.version)'
-
-
-  displayName: 'Use Python $(python.version)'
-
+# Step to add the custom Python binary to the PATH
+- script: |
+    echo "##vso[task.prependpath]$(Pipeline.Workspace)/python2.7/bin"
+    python --version
+  displayName: 'Add Python 2.7 to PATH and Verify'
 
 - script: python "add.py"
 
-
-
 - task: PythonScript@0
-
-
   inputs:
-
-
     scriptSource: 'inline'
-
-
     script: |
       print('AZURE PIPELINE')
       print('CONTINUOUS INTEGRATION & CONTINUOUS DEPLOYMENT')
